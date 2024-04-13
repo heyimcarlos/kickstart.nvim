@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- copilot_assume_mapped
 vim.g.copilot_assume_mapped = true
@@ -812,25 +812,68 @@ require('lazy').setup({
   },
 
   'navarasu/onedark.nvim',
-  'olivercederborg/poimandres.nvim',
-  'rose-pine/neovim',
-  'navarasu/onedark.nvim',
-
   {
-    'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    lazy = false,
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'rose-pine'
+      vim.cmd.colorscheme 'catppuccin'
       vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
       vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
-
-      -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
   },
+
+  {
+    'rose-pine/neovim',
+    lazy = false,
+    priority = 1000,
+    init = function()
+      -- vim.cmd.colorscheme 'rose-pine'
+      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+      vim.cmd.hi 'Comment gui=none'
+    end,
+  },
+
+  -- {
+  --   'olivercederborg/poimandres.nvim',
+  --   lazy = false,
+  --   priority = 1000,
+  --   config = function()
+  --     require('poimandres').setup {}
+  --   end,
+  --   init = function()
+  --     -- vim.cmd 'colorscheme poimandres'
+  --   end,
+  -- },
+
+  -- {
+  --   'tjdevries/colorbuddy.nvim',
+  --   priority = 1000,
+  --   init = function()
+  --     vim.cmd.colorscheme 'colorbuddy'
+  --     vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+  --     vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+  --     vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
+
+  -- {
+  --   'folke/tokyonight.nvim',
+  --   priority = 1000, -- Make sure to load this before all the other start plugins.
+  --   init = function()
+  --     -- Load the colorscheme here.
+  --     -- Like many other themes, this one has different styles, and you could load
+  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+  --     -- vim.cmd.colorscheme 'tokyonight-night'
+  --     -- vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+  --     -- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+  --
+  --     -- You can configure highlights by doing something like:
+  --     -- vim.cmd.hi 'Comment gui=none'
+  --   end,
+  -- },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -938,7 +981,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

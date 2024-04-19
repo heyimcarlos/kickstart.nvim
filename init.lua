@@ -201,7 +201,7 @@ vim.keymap.set('n', 'ss', ':split<Return><C-w>w')
 vim.keymap.set('n', 'sv', ':vsplit<Return><C-w>w')
 
 -- Move window
-vim.keymap.set('', 'sh', '<C-w>h')
+vim.keymap.set('n', 'sh', '<C-w>h')
 vim.keymap.set('', 'sk', '<C-w>k')
 vim.keymap.set('', 'sj', '<C-w>j')
 vim.keymap.set('', 'sl', '<C-w>l')
@@ -650,6 +650,8 @@ require('lazy').setup({
         'clang-format',
         'markdownlint',
         'terraform-ls',
+        'prettier',
+        'prettierd',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -700,7 +702,8 @@ require('lazy').setup({
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
+        javascript = { { 'prettierd', 'prettier' } },
+        html = { { 'prettierd', 'prettier' } },
       },
     },
   },
@@ -725,12 +728,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
       },
       'saadparwaiz1/cmp_luasnip',
@@ -894,7 +897,7 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      require('mini.surround').setup { mappings = { highlight = '' } }
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,

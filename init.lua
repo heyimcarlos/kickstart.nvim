@@ -635,7 +635,9 @@ require('lazy').setup({
         },
         html = { filetypes = { 'html', 'twig', 'hbs' } },
         csharp_ls = {},
-
+        astro = {
+          filetypes = { 'astro' },
+        },
         lua_ls = {
           settings = {
             Lua = {
@@ -957,6 +959,7 @@ require('lazy').setup({
         'html',
         'luadoc',
         'markdown',
+        'astro',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,

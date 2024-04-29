@@ -166,6 +166,8 @@ vim.opt.wrap = true
 vim.opt.title = true
 vim.opt.nu = true
 vim.opt.softtabstop = 4
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.swapfile = false
 
@@ -610,13 +612,27 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        gopls = {},
+        gopls = {
+          cmd = { 'gopls' },
+          filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+          -- root_dir = util.root_pattern('go.work', 'go.mod', '.git'),
+        },
         pyright = {},
         ruff_lsp = {
           organizeImports = false,
         },
         rust_analyzer = {},
-        tsserver = {},
+        tsserver = {
+          cmd = { 'typescript-language-server', '--stdio' },
+          filetypes = {
+            'javascript',
+            'javascriptreact',
+            'javascript.jsx',
+            'typescript',
+            'typescriptreact',
+            'typescript.tsx',
+          },
+        },
         html = { filetypes = { 'html', 'twig', 'hbs' } },
         csharp_ls = {},
 
@@ -649,6 +665,7 @@ require('lazy').setup({
         'isort',
         'clang-format',
         'markdownlint',
+        'jsonls',
         'terraform-ls',
         'prettier',
         'prettierd',
@@ -703,6 +720,7 @@ require('lazy').setup({
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         javascript = { { 'prettierd', 'prettier' } },
+        typescript = { { 'prettierd', 'prettier' } },
         html = { { 'prettierd', 'prettier' } },
       },
     },

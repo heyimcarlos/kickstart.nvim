@@ -1,89 +1,3 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-========                                    .-----.          ========
-========         .----------------------.   | === |          ========
-========         |.-""""""""""""""""""-.|   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||   KICKSTART.NVIM   ||   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||                    ||   |-----|          ========
-========         ||:Tutor              ||   |:::::|          ========
-========         |'-..................-'|   |____o|          ========
-========         `"")----------------(""`   ___________      ========
-========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==hjkl==:::\  \ required \    ========
-========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
-========                                                     ========
-=====================================================================
-=====================================================================
-
-What is Kickstart?
-
-  Kickstart.nvim is *not* a distribution.
-
-  Kickstart.nvim is a starting point for your own configuration.
-    The goal is that you can read every line of code, top-to-bottom, understand
-    what your configuration is doing, and modify it to suit your needs.
-
-    Once you've done that, you can start exploring, configuring and tinkering to
-    make Neovim your own! That might mean leaving Kickstart just the way it is for a while
-    or immediately breaking it into modular pieces. It's up to you!
-
-    If you don't know anything about Lua, I recommend taking some time to read through
-    a guide. One possible example which will only take 10-15 minutes:
-      - https://learnxinyminutes.com/docs/lua/
-
-    After understanding a bit more about Lua, you can use `:help lua-guide` as a
-    reference for how Neovim integrates Lua.
-    - :help lua-guide
-    - (or HTML version): https://neovim.io/doc/user/lua-guide.html
-
-Kickstart Guide:
-
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
-
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know the Neovim basics, you can skip this step.)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua.
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not exactly sure of what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or Neovim features used in Kickstart.
-
-   NOTE: Look for lines like this
-
-    Throughout the file. These are for you, the reader, to help you understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
-    for when you are first encountering a few different constructs in your Neovim config.
-
-If you experience any errors while trying to install kickstart, run `:checkhealth` for more info.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now! :)
---]]
-
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -204,9 +118,16 @@ vim.keymap.set('n', 'sv', ':vsplit<Return><C-w>w')
 
 -- Move window
 vim.keymap.set('n', 'sh', '<C-w>h')
-vim.keymap.set('', 'sk', '<C-w>k')
-vim.keymap.set('', 'sj', '<C-w>j')
-vim.keymap.set('', 'sl', '<C-w>l')
+vim.keymap.set('n', 'sk', '<C-w>k')
+vim.keymap.set('n', 'sj', '<C-w>j')
+vim.keymap.set('n', 'sl', '<C-w>l')
+
+-- Move buffer
+vim.keymap.set('n', 'tn', ':bnext<enter>', { noremap = false })
+vim.keymap.set('n', 'tp', ':bprev<enter>', { noremap = false })
+vim.keymap.set('n', 'tk', ':bnext<enter>', { noremap = false })
+vim.keymap.set('n', 'tj', ':bprev<enter>', { noremap = false })
+vim.keymap.set('n', 'td', ':bdelete<enter>', { noremap = false })
 
 -- Resize window
 vim.keymap.set('n', '<C-w><left>', '<C-w><')
@@ -287,6 +208,9 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+
+  -- transparent
+  'xiyaowong/transparent.nvim',
 
   -- Git related plugins
   'tpope/vim-fugitive',
@@ -638,6 +562,7 @@ require('lazy').setup({
         astro = {
           filetypes = { 'astro' },
         },
+        jsonls = { filetypes = { 'json' } },
         lua_ls = {
           settings = {
             Lua = {
@@ -667,7 +592,6 @@ require('lazy').setup({
         'isort',
         'clang-format',
         'markdownlint',
-        'jsonls',
         'terraform-ls',
         'prettier',
         'prettierd',
@@ -687,6 +611,48 @@ require('lazy').setup({
         },
       }
     end,
+  },
+
+  { -- Notify
+    'rcarriga/nvim-notify',
+    config = function()
+      require('notify').setup {
+        background_colour = '#000000',
+        enabled = false,
+      }
+    end,
+  },
+
+  {
+    'folke/noice.nvim',
+    config = function()
+      require('noice').setup {
+        -- add any options here
+        routes = {
+          {
+            filter = {
+              event = 'msg_show',
+              any = {
+                { find = '%d+L, %d+B' },
+                { find = '; after #%d+' },
+                { find = '; before #%d+' },
+                { find = '%d fewer lines' },
+                { find = '%d more lines' },
+              },
+            },
+            opts = { skip = true },
+          },
+        },
+      }
+    end,
+    dependencies = {
+      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
+      'MunifTanjim/nui.nvim',
+      -- OPTIONAL:
+      --   `nvim-notify` is only needed, if you want to use the notification view.
+      --   If not available, we use `mini` as the fallback
+      'rcarriga/nvim-notify',
+    },
   },
 
   { -- Autoformat
@@ -839,64 +805,38 @@ require('lazy').setup({
     'catppuccin/nvim',
     name = 'catppuccin',
     lazy = false,
-    init = function()
-      vim.cmd.colorscheme 'catppuccin'
-      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
-      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
-      vim.cmd.hi 'Comment gui=none'
-    end,
+    priority = 1000,
   },
 
   {
     'rose-pine/neovim',
     lazy = false,
     priority = 1000,
-    init = function()
-      -- vim.cmd.colorscheme 'rose-pine'
-      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
-      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
-      vim.cmd.hi 'Comment gui=none'
+  },
+
+  {
+    'olivercederborg/poimandres.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('poimandres').setup {}
     end,
   },
 
-  -- {
-  --   'olivercederborg/poimandres.nvim',
-  --   lazy = false,
-  --   priority = 1000,
-  --   config = function()
-  --     require('poimandres').setup {}
-  --   end,
-  --   init = function()
-  --     -- vim.cmd 'colorscheme poimandres'
-  --   end,
-  -- },
+  {
+    'tjdevries/colorbuddy.nvim',
+    priority = 1000,
+  },
 
-  -- {
-  --   'tjdevries/colorbuddy.nvim',
-  --   priority = 1000,
-  --   init = function()
-  --     vim.cmd.colorscheme 'colorbuddy'
-  --     vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
-  --     vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
-  --     vim.cmd.hi 'Comment gui=none'
-  --   end,
-  -- },
+  { 'ellisonleao/gruvbox.nvim', priority = 1000, config = true },
 
-  -- {
-  --   'folke/tokyonight.nvim',
-  --   priority = 1000, -- Make sure to load this before all the other start plugins.
-  --   init = function()
-  --     -- Load the colorscheme here.
-  --     -- Like many other themes, this one has different styles, and you could load
-  --     -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  --     -- vim.cmd.colorscheme 'tokyonight-night'
-  --     -- vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
-  --     -- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
-  --
-  --     -- You can configure highlights by doing something like:
-  --     -- vim.cmd.hi 'Comment gui=none'
-  --   end,
-  -- },
+  {
+    'folke/tokyonight.nvim',
+    priority = 1000, -- Make sure to load this before all the other start plugins.
+    init = function()
+      vim.cmd.hi 'Comment gui=none'
+    end,
+  },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -918,24 +858,6 @@ require('lazy').setup({
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup { mappings = { highlight = '' } }
-
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
-
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
   { -- Highlight, edit, and navigate code
@@ -1027,6 +949,9 @@ require('lazy').setup({
     },
   },
 })
+
+-- Set colorscheme
+vim.cmd.colorscheme 'catppuccin'
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

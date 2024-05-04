@@ -46,7 +46,7 @@ vim.keymap.set('n', '<C-w><up>', '<C-w>+')
 vim.keymap.set('n', '<C-w><down>', '<C-w>-')
 
 -- Substitution
-vim.keymap.set('n', '<leader>su', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+vim.keymap.set('n', '<leader>su', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = '[SU]bstitution' })
 
 -- Go back to netrw
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)

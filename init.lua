@@ -638,9 +638,9 @@ require('lazy').setup({
       -- Add/delete/replace surroundings (brackets, quotes, etc.)
       --
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
-      -- - sd'   - [S]urround [D]elete [']quotes
+      -- - sD'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup { mappings = { highlight = '' } }
+      require('mini.surround').setup { mappings = { highlight = '', update_n_lines = '', delete = 'sD' } }
     end,
   },
   { -- Highlight, edit, and navigate code

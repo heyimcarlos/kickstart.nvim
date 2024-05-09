@@ -34,6 +34,9 @@ vim.keymap.set('n', 'sl', '<C-w>l')
 vim.keymap.set('n', 'tn', ':bnext<enter>', { noremap = false })
 vim.keymap.set('n', 'tp', ':bprev<enter>', { noremap = false })
 vim.keymap.set('n', 'td', ':bdelete<enter>', { noremap = false })
+vim.keymap.set('n', 'sn', ':bnext<enter>', { noremap = false, desc = 'Next Buffer' })
+vim.keymap.set('n', 'sp', ':bprev<enter>', { noremap = false, desc = 'Previous Buffer' })
+vim.keymap.set('n', 'sd', ':bdelete<enter>', { noremap = false, desc = 'Delete Buffer' })
 
 -- Move Quicklist
 vim.keymap.set('n', 'tk', '<cmd>cnext<CR>zz')

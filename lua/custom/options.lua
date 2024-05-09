@@ -65,7 +65,7 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = true
 
-vim.opt.guicursor = ''
+-- vim.opt.guicursor = ''
 
 -- Move next and previous and reposition the screen to center
 vim.keymap.set('n', 'n', 'nzzzv')

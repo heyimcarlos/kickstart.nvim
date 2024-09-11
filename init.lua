@@ -69,7 +69,7 @@ require('lazy').setup({
   {
     'github/copilot.vim',
     config = function()
-      vim.g.copilot_enabled = false
+      vim.g.copilot_enabled = true
     end,
   },
 
@@ -216,6 +216,7 @@ require('lazy').setup({
       'williamboman/mason.nvim',
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
+      'nvim-java/nvim-java',
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
@@ -308,6 +309,8 @@ require('lazy').setup({
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
       --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
+      -- Add python autocompletion
+      capabilities.textDocument.completion.completionItem.snippetSupport = true
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       -- Enable the following language servers
@@ -320,6 +323,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
+        jdtls = {},
         clangd = {},
         gopls = {
           cmd = { 'gopls' },
@@ -327,21 +331,15 @@ require('lazy').setup({
           -- root_dir = util.root_pattern('go.work', 'go.mod', '.git'),
         },
         pyright = {},
-        ruff_lsp = {
-          organizeImports = false,
+        ruff = {
+          settings = {
+            organizeImports = false,
+          },
+          on_attach = function(client)
+            client.server_capabilities.hoverProvider = false
+          end,
         },
         rust_analyzer = {},
-        tsserver = {
-          cmd = { 'typescript-language-server', '--stdio' },
-          filetypes = {
-            'javascript',
-            'javascriptreact',
-            'javascript.jsx',
-            'typescript',
-            'typescriptreact',
-            'typescript.tsx',
-          },
-        },
         html = { filetypes = { 'html', 'twig', 'hbs' } },
         csharp_ls = {},
         astro = {
@@ -374,16 +372,17 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
-        'isort',
         'clang-format',
         'markdownlint',
         'terraform-ls',
-        'prettier',
-        'prettierd',
-        'eslint_d',
-        'pylint',
-        -- 'golangci-lint',
-        'black',
+        'tailwindcss-language-server',
+        'css-lsp',
+        'pyright', -- LSP for python
+        'ruff', -- linter for python (includes flake8, pep8, etc.)
+        'debugpy', -- debugger
+        'black', -- formatter
+        'isort', -- organize imports
+        'taplo', -- LSP for toml (for pyproject.toml files)
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -397,6 +396,16 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+          jdtls = function()
+            require('java').setup {
+              -- Your custom jdtls settings goes here
+            }
+
+            require('lspconfig').jdtls.setup {
+              -- Your custom nvim-java configuration goes here
+            }
+          end,
+          ruff = function() end,
         },
       }
     end,
@@ -431,6 +440,20 @@ require('lazy').setup({
             },
             opts = { skip = true },
           },
+          {
+            filter = {
+              event = 'notify',
+              find = 'No information available',
+            },
+            opts = { skip = true },
+          },
+        },
+
+        presets = {
+          lsp_doc_border = true,
+          bottom_search = true,
+          command_palette = true,
+          long_message_to_split = true,
         },
       }
     end,
@@ -476,12 +499,12 @@ require('lazy').setup({
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        javascript = { 'prettierd', 'prettier' },
-        typescript = { 'prettierd', 'prettier' },
-        javascriptreact = { 'prettierd', 'prettier' },
-        typescriptreact = { 'prettierd', 'prettier' },
-        html = { 'prettierd', 'prettier' },
-        markdown = { 'prettierd', 'prettier' },
+        -- javascript = { 'prettier' },
+        -- typescript = { 'prettier' },
+        -- javascriptreact = { 'prettier' },
+        -- typescriptreact = { 'prettier' },
+        html = { 'prettier' },
+        markdown = { 'prettier' },
       },
     },
   },
@@ -622,12 +645,20 @@ require('lazy').setup({
 
   { 'ellisonleao/gruvbox.nvim', priority = 1000, config = true },
 
+  -- {''}
+
   {
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
       vim.cmd.hi 'Comment gui=none'
     end,
+  },
+
+  {
+    'pmizio/typescript-tools.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+    opts = {},
   },
 
   -- Highlight todo, notes, etc in comments
@@ -662,18 +693,21 @@ require('lazy').setup({
         'cpp',
         'go',
         'lua',
+        'css',
+        'cmake',
+        'scss',
         'python',
+        'ninja',
         'rust',
-        'tsx',
-        'javascript',
-        'typescript',
+        'http',
+        'sql',
+        'gitignore',
         'vimdoc',
-        'vim',
         'bash',
         'html',
-        'luadoc',
         'markdown',
         'astro',
+        'java',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,

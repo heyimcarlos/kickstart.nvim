@@ -216,7 +216,7 @@ require('lazy').setup({
       'williamboman/mason.nvim',
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-      'nvim-java/nvim-java',
+      -- 'nvim-java/nvim-java',
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
@@ -330,7 +330,33 @@ require('lazy').setup({
           filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
           -- root_dir = util.root_pattern('go.work', 'go.mod', '.git'),
         },
-        pyright = {},
+        pyright = {
+          -- settings = {
+          --   python = {
+          --     analysis = {
+          --       autoSearchPaths = true,
+          --       diagnosticMode = 'openFilesOnly',
+          --       useLibraryCodeForTypes = true,
+          --     },
+          --   },
+          -- },
+          -- on_init = function(client)
+          --   -- Get the active virtual environment's path
+          --   local venv_path = vim.fn.getenv 'VIRTUAL_ENV'
+          --
+          --   -- If a virtual environment is active, set it as the Python path
+          --   if venv_path then
+          --     client.config.settings.python.pythonPath = venv_path .. '/bin/python'
+          --   else
+          --     -- If no virtual environment is active, fall back to system Python
+          --     client.config.settings.python.pythonPath = '/usr/bin/python'
+          --   end
+          --
+          --   -- Notify the client that the configuration has changed
+          --   client.notify 'workspace/didChangeConfiguration'
+          --   return true
+          -- end,
+        },
         ruff = {
           settings = {
             organizeImports = false,
@@ -340,7 +366,7 @@ require('lazy').setup({
           end,
         },
         rust_analyzer = {},
-        html = { filetypes = { 'html', 'twig', 'hbs' } },
+        html = { filetypes = { 'html', 'twig', 'hbs', 'xhtml' } },
         csharp_ls = {},
         astro = {
           filetypes = { 'astro' },
@@ -396,15 +422,15 @@ require('lazy').setup({
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
-          jdtls = function()
-            require('java').setup {
-              -- Your custom jdtls settings goes here
-            }
-
-            require('lspconfig').jdtls.setup {
-              -- Your custom nvim-java configuration goes here
-            }
-          end,
+          -- jdtls = function()
+          --   require('java').setup {
+          --     -- Your custom jdtls settings goes here
+          --   }
+          --
+          --   require('lspconfig').jdtls.setup {
+          --     -- Your custom nvim-java configuration goes here
+          --   }
+          -- end,
           ruff = function() end,
         },
       }
@@ -469,7 +495,8 @@ require('lazy').setup({
 
   { -- Autoformat
     'stevearc/conform.nvim',
-    lazy = false,
+    event = { 'BufWritePre' },
+    cmd = { 'ConformInfo' },
     keys = {
       {
         '<leader>f',
@@ -487,9 +514,15 @@ require('lazy').setup({
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
+        local lsp_format_opt
+        if disable_filetypes[vim.bo[bufnr].filetype] then
+          lsp_format_opt = 'never'
+        else
+          lsp_format_opt = 'fallback'
+        end
         return {
           timeout_ms = 500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+          lsp_format = lsp_format_opt,
         }
       end,
       formatters_by_ft = {
@@ -499,12 +532,17 @@ require('lazy').setup({
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        -- javascript = { 'prettier' },
-        -- typescript = { 'prettier' },
-        -- javascriptreact = { 'prettier' },
-        -- typescriptreact = { 'prettier' },
-        html = { 'prettier' },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
+        javascriptreact = { 'prettier' },
+        typescriptreact = { 'prettier' },
+        html = { 'prettier', 'prettierd', stop_after_first = true },
+        json = { 'prettier' },
+        css = { 'prettier' },
         markdown = { 'prettier' },
+      },
+      formatters = {
+        prettier = {},
       },
     },
   },
@@ -707,7 +745,7 @@ require('lazy').setup({
         'html',
         'markdown',
         'astro',
-        'java',
+        -- 'java',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,

@@ -11,7 +11,7 @@ return {
         typescript = { 'eslint' },
         javascriptreact = { 'eslint' },
         typescriptreact = { 'eslint' },
-        python = { 'pylint' },
+        python = { 'ruff' },
         -- golang = { 'golangci-lint' },
         -- terraform = { 'tflint' },
         -- json = { 'jsonlint' },

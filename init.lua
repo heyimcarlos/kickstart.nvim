@@ -521,7 +521,7 @@ require('lazy').setup({
           lsp_format_opt = 'fallback'
         end
         return {
-          timeout_ms = 500,
+          timeout_ms = 1500,
           lsp_format = lsp_format_opt,
         }
       end,
@@ -672,7 +672,19 @@ require('lazy').setup({
     lazy = false,
     priority = 1000,
     config = function()
-      require('poimandres').setup {}
+      require('poimandres').setup {
+        transparent_background = true,
+      }
+    end,
+  },
+
+  {
+    'projekt0n/github-nvim-theme',
+    name = 'github-theme',
+    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    priority = 1000, -- make sure to load this before all the other start plugins
+    config = function()
+      require('github-theme').setup {}
     end,
   },
 
@@ -744,6 +756,7 @@ require('lazy').setup({
         'bash',
         'html',
         'markdown',
+        'markdown_inline',
         'astro',
         -- 'java',
       },
@@ -815,7 +828,12 @@ require('lazy').setup({
 })
 
 -- Set colorscheme
-vim.cmd.colorscheme 'catppuccin'
+vim.cmd.colorscheme 'github_dark_default'
+-- transparent background
+vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+-- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+-- vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'none' })
+-- vim.api.nvim_set_hl(0, 'Pmenu', { bg = 'none' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

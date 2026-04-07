@@ -5,7 +5,9 @@ return { -- Autoformat
   keys = {
     {
       '<leader>f',
-      function() require('conform').format { async = true, lsp_format = 'fallback' } end,
+      function()
+        require('conform').format { async = true, lsp_format = 'fallback' }
+      end,
       mode = '',
       desc = '[F]ormat buffer',
     },
@@ -31,7 +33,7 @@ return { -- Autoformat
     formatters_by_ft = {
       lua = { 'stylua' },
       -- Conform can also run multiple formatters sequentially
-      python = { "ty" },
+      python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports', 'ty', 'uv', stop_after_first = true },
       --
       -- You can use 'stop_after_first' to run the first available formatter from the list
       -- javascript = { "prettierd", "prettier", stop_after_first = true },

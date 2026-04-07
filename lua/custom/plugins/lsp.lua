@@ -2,9 +2,6 @@ return {
   -- Main LSP Configuration
   'neovim/nvim-lspconfig',
   dependencies = {
-    -- Automatically install LSPs and related tools to stdpath for Neovim
-    -- Mason must be loaded before its dependents so we need to set it up here.
-    -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
     {
       'mason-org/mason.nvim',
       ---@module 'mason.settings'
@@ -108,9 +105,9 @@ return {
         --
         -- This may be unwanted, since they displace some of your code
         if client and client:supports_method('textDocument/inlayHint', event.buf) then
-          map('<leader>th',
-            function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end,
-            '[T]oggle Inlay [H]ints')
+          map('<leader>th', function()
+            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+          end, '[T]oggle Inlay [H]ints')
         end
       end,
     })
@@ -120,25 +117,24 @@ return {
     --  See `:help lsp-config` for information about keys and how to configure
     ---@type table<string, vim.lsp.Config>
     local servers = {
-      -- clangd = {},
-      -- gopls = {},
-      -- pyright = {},
-      -- rust_analyzer = {},
-      --
-      -- Some languages (like typescript) have entire language plugins that can be useful:
-      --    https://github.com/pmizio/typescript-tools.nvim
-      --
-      -- But for many setups, the LSP (`ts_ls`) will work just fine
-      -- ts_ls = {},
-
-      stylua = {}, -- Used to format Lua code
+      gopls = {
+        filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+      },
+      rust_analyzer = {},
+      html = {},
+      astro = {},
+      ty = {},
+      ruff = {},
+      stylua = {},
 
       -- Special Lua Config, as recommended by neovim help docs
       lua_ls = {
         on_init = function(client)
           if client.workspace_folders then
             local path = client.workspace_folders[1].name
-            if path ~= vim.fn.stdpath 'config' and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc')) then return end
+            if path ~= vim.fn.stdpath 'config' and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc')) then
+              return
+            end
           end
 
           client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
@@ -163,16 +159,14 @@ return {
       },
     }
 
-    -- Ensure the servers and tools above are installed
-    --
-    -- To check the current status of installed tools and/or manually install
-    -- other tools, you can run
-    --    :Mason
-    --
-    -- You can press `g?` for help in this menu.
     local ensure_installed = vim.tbl_keys(servers or {})
     vim.list_extend(ensure_installed, {
-      -- You can add other tools here that you want Mason to install
+      'uv',
+      'tailwindcss-language-server',
+      'markdownlint',
+      'prettier',
+      'css-lsp',
+      'eslint-lsp',
     })
 
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }

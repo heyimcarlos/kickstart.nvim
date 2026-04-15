@@ -48,17 +48,7 @@ require('lazy').setup({
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
 
-  -- NOTE: Plugins can also be added by using a table,
-  -- with the first argument being the link and the following
-  -- keys can be used to configure plugin behavior/loading/etc.
-  --
-  -- Use `opts = {}` to force a plugin to be loaded.
-  --
-  --  This is equivalent to:
-  --    require('Comment').setup({})
-
-  -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  { 'nvim-mini/mini.nvim', version = '*' },
 
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -119,59 +109,30 @@ require('lazy').setup({
     },
   },
 
-  { -- Notify
-    'rcarriga/nvim-notify',
-    config = function()
-      require('notify').setup {
-        background_colour = '#000000',
-        enabled = false,
-      }
-    end,
-  },
-
   {
     'folke/noice.nvim',
-    config = function()
-      require('noice').setup {
-        -- add any options here
-        routes = {
-          {
-            filter = {
-              event = 'msg_show',
-              any = {
-                { find = '%d+L, %d+B' },
-                { find = '; after #%d+' },
-                { find = '; before #%d+' },
-                { find = '%d fewer lines' },
-                { find = '%d more lines' },
-              },
-            },
-            opts = { skip = true },
-          },
-          {
-            filter = {
-              event = 'notify',
-              find = 'No information available',
-            },
-            opts = { skip = true },
-          },
-        },
-
-        presets = {
-          lsp_doc_border = true,
-          bottom_search = true,
-          command_palette = true,
-          long_message_to_split = true,
-        },
-      }
-    end,
+    event = 'VeryLazy',
     dependencies = {
-      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
       'MunifTanjim/nui.nvim',
-      -- OPTIONAL:
-      --   `nvim-notify` is only needed, if you want to use the notification view.
-      --   If not available, we use `mini` as the fallback
-      'rcarriga/nvim-notify',
+    },
+    opts = {
+      -- 1. Disable the notification system (Fixes your error!)
+      notify = { enabled = false },
+
+      -- 2. Disable Noice's LSP hover/signature UI
+      -- (Keeps the default Neovim look for 'K' hover)
+      lsp = {
+        hover = { enabled = false },
+        signature = { enabled = false },
+        message = { enabled = false },
+      },
+
+      -- 3. Keep the parts you actually like
+      presets = {
+        bottom_search = false, -- Keep search in the floating bar
+        command_palette = true, -- This is the floating bar you like!
+        long_message_to_split = true,
+      },
     },
   },
 
@@ -312,13 +273,21 @@ require('lazy').setup({
 
   { 'ellisonleao/gruvbox.nvim', priority = 1000, config = true },
 
-  -- {''}
-
   {
     'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
-    init = function()
-      vim.cmd.hi 'Comment gui=none'
+    config = function()
+      ---@diagnostic disable-next-line: missing-fields
+      require('tokyonight').setup {
+        styles = {
+          comments = { italic = false }, -- Disable italics in comments
+        },
+      }
+
+      -- Load the colorscheme here.
+      -- Like many other themes, this one has different styles, and you could load
+      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
+      -- vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
 
@@ -329,7 +298,15 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  {
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    ---@module 'todo-comments'
+    ---@type TodoOptions
+    ---@diagnostic disable-next-line: missing-fields
+    opts = { signs = false },
+  },
 
   { -- Collection of various small independent plugins/modules
     'nvim-mini/mini.nvim',
@@ -347,7 +324,11 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      require('mini.surround').setup {
+        mappings = {
+          delete = 'ds',
+        },
+      }
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,

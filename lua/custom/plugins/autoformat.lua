@@ -33,10 +33,10 @@ return { -- Autoformat
     formatters_by_ft = {
       lua = { 'stylua' },
       -- Conform can also run multiple formatters sequentially
-      python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports', 'ty', 'uv', stop_after_first = true },
-      --
+      python = { 'ruff_organize_imports', 'ruff_fix', 'ruff_format' },
       -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      javascript = { 'prettierd', 'prettier', stop_after_first = true },
+      typescript = { 'prettierd', 'prettier', stop_after_first = true },
     },
   },
 }

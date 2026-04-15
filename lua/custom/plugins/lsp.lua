@@ -14,7 +14,12 @@ return {
     'WhoIsSethDaniel/mason-tool-installer.nvim',
 
     -- Useful status updates for LSP.
-    { 'j-hui/fidget.nvim', opts = {} },
+    {
+      'j-hui/fidget.nvim',
+      opts = {
+        notification = { override_vim_notify = true },
+      },
+    },
   },
   config = function()
     -- Brief aside: **What is LSP?**
@@ -123,10 +128,16 @@ return {
       rust_analyzer = {},
       html = {},
       astro = {},
-      ty = {},
+      ty = {
+        filetypes = { 'python' },
+      },
       ruff = {},
       stylua = {},
-
+      eslint = {
+        settings = {
+          workingDirectory = { mode = 'auto' },
+        },
+      },
       -- Special Lua Config, as recommended by neovim help docs
       lua_ls = {
         on_init = function(client)
@@ -162,6 +173,7 @@ return {
     local ensure_installed = vim.tbl_keys(servers or {})
     vim.list_extend(ensure_installed, {
       'uv',
+      'ty',
       'tailwindcss-language-server',
       'markdownlint',
       'prettier',

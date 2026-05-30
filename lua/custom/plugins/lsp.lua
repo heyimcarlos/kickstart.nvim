@@ -128,6 +128,11 @@ return {
       rust_analyzer = {},
       html = {},
       astro = {},
+      tailwindcss = {
+        -- Tailwind IntelliSense only starts in projects that look like Tailwind projects
+        -- (tailwind/postcss config, package.json dependency, or newer lspconfig fallback markers).
+        -- Mason installs the binary, but the server still has to be enabled here.
+      },
       ty = {
         filetypes = { 'python' },
       },

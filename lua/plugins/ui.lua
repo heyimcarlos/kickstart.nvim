@@ -7,6 +7,24 @@ return {
   },
   {
     'folke/snacks.nvim',
+    keys = {
+      {
+        '<leader>ld',
+        function()
+          Snacks.terminal({ 'lazydocker' }, {
+            cwd = vim.fn.getcwd(0),
+            interactive = true,
+            win = {
+              position = 'float',
+              border = 'rounded',
+              width = 0.9,
+              height = 0.9,
+            },
+          })
+        end,
+        desc = 'LazyDocker',
+      },
+    },
     opts = {
       picker = {
         sources = {

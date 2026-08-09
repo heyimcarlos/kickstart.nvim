@@ -60,6 +60,9 @@ local plugins = require('lazy.core.config').plugins
 for _, name in ipairs { 'kanagawa', 'telescope.nvim', 'snacks.nvim', 'nvim-lspconfig' } do
   check(plugins[name] ~= nil, ('expected resolved plugin %q'):format(name))
 end
+for _, name in ipairs { 'lazydocker.nvim', 'toggleterm.nvim' } do
+  check(plugins[name] == nil, ('expected old LazyDocker plugin %q to be absent'):format(name))
+end
 check(plugins.kanagawa.opts.theme == 'dragon', 'expected the Kanagawa dragon theme')
 
 for _, name in ipairs { 'telescope.nvim', 'telescope-fzf-native.nvim', 'plenary.nvim' } do
@@ -95,10 +98,28 @@ for lhs in pairs(intentional_lsp_keys) do
 end
 
 require('lazyvim.config').load 'keymaps'
-for _, lhs in ipairs { '<leader>lg', 'sd', 'sn', 'sp' } do
+for _, lhs in ipairs { '<leader>ld', '<leader>lg', 'sd', 'sn', 'sp' } do
   local mapping = vim.fn.maparg(lhs, 'n', false, true)
   check(type(mapping) == 'table' and type(mapping.desc) == 'string' and mapping.desc ~= '', ('expected %q to have a description'):format(lhs))
 end
+
+local lazydocker = vim.fn.maparg('<leader>ld', 'n', false, true)
+check(lazydocker.desc == 'LazyDocker', 'expected Snacks to retain the LazyDocker mapping description')
+check(type(lazydocker.callback) == 'function', 'expected LazyDocker to resolve to a callback')
+local terminal = Snacks.terminal
+local terminal_call
+Snacks.terminal = function(cmd, opts)
+  terminal_call = { cmd = cmd, opts = opts }
+end
+lazydocker.callback()
+Snacks.terminal = terminal
+check(vim.deep_equal(terminal_call.cmd, { 'lazydocker' }), 'expected LazyDocker to run through Snacks terminal')
+check(terminal_call.opts.cwd == vim.fn.getcwd(0), 'expected LazyDocker to use the current window cwd')
+check(terminal_call.opts.interactive, 'expected LazyDocker terminal to start and remain in insert mode')
+check(terminal_call.opts.win.position == 'float', 'expected LazyDocker to use a floating terminal')
+check(terminal_call.opts.win.border == 'rounded', 'expected LazyDocker float to use a rounded border')
+check(terminal_call.opts.win.width == 0.9, 'expected LazyDocker float width to be 90%')
+check(terminal_call.opts.win.height == 0.9, 'expected LazyDocker float height to be 90%')
 
 for lhs, desc in pairs { ['[d'] = 'Prev Diagnostic', [']d'] = 'Next Diagnostic' } do
   local mapping = vim.fn.maparg(lhs, 'n', false, true)

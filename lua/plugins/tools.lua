@@ -1,19 +1,5 @@
 return {
   {
-    'mgierada/lazydocker.nvim',
-    dependencies = { 'akinsho/toggleterm.nvim' },
-    keys = {
-      {
-        '<leader>ld',
-        function()
-          require('lazydocker').open()
-        end,
-        desc = 'LazyDocker',
-      },
-    },
-    opts = { border = 'curved' },
-  },
-  {
     'ellisonleao/glow.nvim',
     cmd = 'Glow',
     ft = 'markdown',

@@ -62,6 +62,38 @@ for _, name in ipairs { 'kanagawa', 'telescope.nvim', 'snacks.nvim', 'nvim-lspco
 end
 check(plugins.kanagawa.opts.theme == 'dragon', 'expected the Kanagawa dragon theme')
 
+for _, name in ipairs { 'telescope.nvim', 'telescope-fzf-native.nvim', 'plenary.nvim' } do
+  check(not plugins[name]._.loaded, ('expected %q to remain unloaded before interaction'):format(name))
+end
+
+local lsp_opts = require('lazy.core.plugin').values(plugins['nvim-lspconfig'], 'opts', false)
+local lsp_keys = lsp_opts.servers['*'].keys
+local intentional_lsp_keys = {
+  ['grD'] = { desc = 'LSP: Goto Declaration', has = 'declaration' },
+  ['grr'] = { desc = 'LSP: Goto References', has = 'references' },
+  ['gri'] = { desc = 'LSP: Goto Implementation', has = 'implementation' },
+  ['grd'] = { desc = 'LSP: Goto Definition', has = 'definition' },
+  ['grt'] = { desc = 'LSP: Goto Type Definition', has = 'typeDefinition' },
+  ['gO'] = { desc = 'LSP: Document Symbols', has = 'documentSymbol' },
+  ['gW'] = { desc = 'LSP: Workspace Symbols', has = 'workspace/symbol' },
+  ['<leader>th'] = { desc = 'LSP: Toggle Inlay Hints', has = 'inlayHint' },
+}
+local resolved_lsp_keys = {}
+for _, key in ipairs(lsp_keys) do
+  check(key[1] ~= 'grn' and key[1] ~= 'gra', ('expected Neovim to retain ownership of %q'):format(key[1]))
+  local expected = intentional_lsp_keys[key[1]]
+  if expected then
+    check(not resolved_lsp_keys[key[1]], ('duplicate intentional LSP mapping %q'):format(key[1]))
+    check(key.desc == expected.desc, ('unexpected description for LSP mapping %q'):format(key[1]))
+    check(key.has == expected.has, ('unexpected capability filter for LSP mapping %q'):format(key[1]))
+    check(type(key[2]) == 'function', ('expected LSP mapping %q to resolve to a callback'):format(key[1]))
+    resolved_lsp_keys[key[1]] = true
+  end
+end
+for lhs in pairs(intentional_lsp_keys) do
+  check(resolved_lsp_keys[lhs], ('missing intentional LSP mapping %q'):format(lhs))
+end
+
 require 'config.keymaps'
 for _, lhs in ipairs { '<leader>lg', 'sd', 'sn', 'sp' } do
   local mapping = vim.fn.maparg(lhs, 'n', false, true)

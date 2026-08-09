@@ -44,35 +44,3 @@ vim.api.nvim_create_autocmd('ColorScheme', {
   group = vim.api.nvim_create_augroup('personal-ui-colors', { clear = true }),
   callback = set_ui_highlights,
 })
-
--- Preserve the previous LSP vocabulary while using LazyVim's managed servers.
-vim.api.nvim_create_autocmd('LspAttach', {
-  group = vim.api.nvim_create_augroup('personal-lsp-keymaps', { clear = true }),
-  callback = function(event)
-    local builtin = require 'telescope.builtin'
-    local function map(keys, action, description, mode)
-      vim.keymap.set(mode or 'n', keys, action, {
-        buffer = event.buf,
-        desc = 'LSP: ' .. description,
-      })
-    end
-
-    map('grn', vim.lsp.buf.rename, 'Rename')
-    map('gra', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
-    map('grD', vim.lsp.buf.declaration, 'Goto Declaration')
-    map('grr', builtin.lsp_references, 'Goto References')
-    map('gri', builtin.lsp_implementations, 'Goto Implementation')
-    map('grd', builtin.lsp_definitions, 'Goto Definition')
-    map('grt', builtin.lsp_type_definitions, 'Goto Type Definition')
-    map('gO', builtin.lsp_document_symbols, 'Document Symbols')
-    map('gW', builtin.lsp_dynamic_workspace_symbols, 'Workspace Symbols')
-
-    local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if client and client:supports_method('textDocument/inlayHint', event.buf) then
-      map('<leader>th', function()
-        local enabled = vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }
-        vim.lsp.inlay_hint.enable(not enabled, { bufnr = event.buf })
-      end, 'Toggle Inlay Hints')
-    end
-  end,
-})

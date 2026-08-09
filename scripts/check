@@ -4,6 +4,35 @@ set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo_dir"
 
+config_parent=${TMPDIR:-/tmp}
+case "$config_parent" in
+  /*) ;;
+  *)
+    echo "scripts/check: temporary directory must be absolute: $config_parent" >&2
+    exit 1
+    ;;
+esac
+if [ ! -d "$config_parent" ]; then
+  echo "scripts/check: temporary directory does not exist: $config_parent" >&2
+  exit 1
+fi
+
+check_config_home=$(mktemp -d "$config_parent/nvim-check.XXXXXX")
+if [ ! -d "$check_config_home" ] || [ -L "$check_config_home" ]; then
+  echo 'scripts/check: failed to create a safe temporary config directory' >&2
+  exit 1
+fi
+cleanup() {
+  if [ -L "$check_config_home/nvim" ]; then
+    rm -- "$check_config_home/nvim"
+  fi
+  if [ -d "$check_config_home" ]; then
+    rmdir -- "$check_config_home"
+  fi
+}
+trap cleanup EXIT HUP INT TERM
+ln -s "$repo_dir" "$check_config_home/nvim"
+
 if ! command -v nvim >/dev/null 2>&1; then
   echo 'scripts/check: nvim is required but was not found in PATH' >&2
   exit 127
@@ -21,4 +50,4 @@ else
 fi
 
 "$stylua_bin" --check .
-nvim --headless -u init.lua "+lua dofile('tests/smoke.lua')"
+XDG_CONFIG_HOME="$check_config_home" nvim --headless -u init.lua "+lua dofile('tests/smoke.lua')"

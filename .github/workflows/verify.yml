@@ -33,6 +33,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-neovim-
 
+      - name: Link Neovim configuration
+        run: |
+          mkdir -p ~/.config
+          ln -s "$GITHUB_WORKSPACE" ~/.config/nvim
+
       - name: Synchronize plugins
         run: nvim --headless -u init.lua "+Lazy! sync" +qa
 

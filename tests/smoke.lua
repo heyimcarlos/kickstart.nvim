@@ -63,9 +63,71 @@ end
 check(plugins.kanagawa.opts.theme == 'dragon', 'expected the Kanagawa dragon theme')
 
 require 'config.keymaps'
-for _, lhs in ipairs { '<leader>lg', '<leader>sf', 'sd', 'sn', 'sp' } do
+for _, lhs in ipairs { '<leader>lg', 'sd', 'sn', 'sp' } do
   local mapping = vim.fn.maparg(lhs, 'n', false, true)
   check(type(mapping) == 'table' and type(mapping.desc) == 'string' and mapping.desc ~= '', ('expected %q to have a description'):format(lhs))
+end
+
+local search_spec = require 'plugins.search'
+local telescope_spec = search_spec[1]
+local grug_spec = search_spec[2]
+local noice_spec = search_spec[3]
+local telescope_keys = telescope_spec.keys
+check(#telescope_keys == 9, 'expected exactly nine intentional local Telescope mappings')
+check(#grug_spec.keys == 2, 'expected one grug-far disable and one replacement mapping')
+check(
+  grug_spec.keys[1][1] == '<leader>sr' and grug_spec.keys[1][2] == false and vim.deep_equal(grug_spec.keys[1].mode, { 'n', 'x' }),
+  'expected the upstream grug-far search key to be disabled in normal and visual modes'
+)
+check(grug_spec.keys[2][1] == '<leader>rr', 'expected grug-far search and replace on <leader>rr')
+check(
+  #noice_spec.keys == 1 and noice_spec.keys[1][1] == '<leader>sn' and noice_spec.keys[1][2] == false,
+  'expected only the empty Noice parent key to be disabled'
+)
+
+local intentional_search_keys = {
+  ['<leader>sf'] = '[S]earch [F]iles',
+  ['<leader>ss'] = '[S]earch [S]elect Telescope',
+  ['<leader>sr'] = '[S]earch [R]esume',
+  ['<leader>s.'] = '[S]earch Recent Files',
+  ['<leader>sc'] = '[S]earch [C]ommands',
+  ['<leader><leader>'] = 'Find Existing Buffers',
+  ['<leader>/'] = 'Search Current Buffer',
+  ['<leader>s/'] = '[S]earch Open Files',
+  ['<leader>sn'] = '[S]earch [N]eovim Files',
+}
+local declared_search_keys = {}
+for _, key in ipairs(telescope_keys) do
+  local lhs = key[1]
+  check(intentional_search_keys[lhs] ~= nil, ('unexpected local Telescope mapping %q'):format(lhs))
+  check(not declared_search_keys[lhs], ('duplicate local Telescope mapping %q'):format(lhs))
+  declared_search_keys[lhs] = true
+end
+require('lazy').load { plugins = { 'telescope.nvim', 'noice.nvim', 'grug-far.nvim' } }
+for lhs, desc in pairs(intentional_search_keys) do
+  check(declared_search_keys[lhs], ('missing local Telescope mapping %q'):format(lhs))
+  local mapping = vim.fn.maparg(lhs, 'n', false, true)
+  check(type(mapping) == 'table' and mapping.desc == desc, ('expected %q to retain description %q'):format(lhs, desc))
+end
+
+for _, lhs in ipairs { '<leader>sh', '<leader>sk', '<leader>sw', '<leader>sg', '<leader>sd' } do
+  local mapping = vim.fn.maparg(lhs, 'n', false, true)
+  check(type(mapping) == 'table' and type(mapping.desc) == 'string' and mapping.desc ~= '', ('expected inherited mapping %q'):format(lhs))
+end
+local visual_word_search = vim.fn.maparg('<leader>sw', 'x', false, true)
+check(type(visual_word_search) == 'table' and type(visual_word_search.desc) == 'string', 'expected inherited visual word search')
+
+local resume = vim.fn.maparg('<leader>sr', 'n', false, true)
+check(resume.rhs == '<cmd>Telescope resume<cr>' and resume.desc == '[S]earch [R]esume', 'expected Telescope Resume to own <leader>sr after plugin load')
+local visual_resume = vim.fn.maparg('<leader>sr', 'x', false, true)
+check(type(visual_resume) ~= 'table' or next(visual_resume) == nil, 'expected no visual grug-far handler on <leader>sr')
+for _, mode in ipairs { 'n', 'x' } do
+  local replace = vim.fn.maparg('<leader>rr', mode, false, true)
+  check(type(replace) == 'table' and replace.desc == 'Search and Replace', ('expected grug-far replacement in %s mode'):format(mode))
+end
+for _, lhs in ipairs { '<leader>snl', '<leader>snh', '<leader>sna', '<leader>snd', '<leader>snt' } do
+  local noice = vim.fn.maparg(lhs, 'n', false, true)
+  check(type(noice) == 'table' and type(noice.desc) == 'string' and noice.desc ~= '', ('expected Noice child mapping %q'):format(lhs))
 end
 
 for _, name in ipairs { 'FloatBorder', 'TelescopePromptNormal', 'SnacksPickerTree' } do

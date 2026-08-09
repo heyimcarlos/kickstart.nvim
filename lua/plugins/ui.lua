@@ -73,7 +73,7 @@ return {
   {
     'akinsho/bufferline.nvim',
     opts = function(_, opts)
-      local theme = require('kanagawa.colors').setup({ theme = 'dragon' }).theme
+      local palette = require('config.theme').palette()
 
       opts.options = vim.tbl_deep_extend('force', opts.options or {}, {
         always_show_bufferline = true,
@@ -86,21 +86,21 @@ return {
         tab_size = 18,
       })
       opts.highlights = vim.tbl_deep_extend('force', opts.highlights or {}, {
-        fill = { bg = theme.ui.bg },
-        background = { fg = theme.ui.nontext, bg = theme.ui.bg_m2 },
-        buffer_visible = { fg = theme.ui.fg_dim, bg = theme.ui.bg_m1 },
+        fill = { bg = palette.ui.bg },
+        background = { fg = palette.ui.nontext, bg = palette.ui.bg_m2 },
+        buffer_visible = { fg = palette.ui.fg_dim, bg = palette.ui.bg_m1 },
         buffer_selected = {
-          fg = theme.ui.fg,
-          bg = theme.ui.bg_p1,
+          fg = palette.ui.fg,
+          bg = palette.ui.bg_p1,
           bold = true,
           italic = false,
         },
-        close_button = { fg = theme.ui.nontext, bg = theme.ui.bg_m2 },
-        close_button_visible = { fg = theme.ui.fg_dim, bg = theme.ui.bg_m1 },
-        close_button_selected = { fg = theme.diag.error, bg = theme.ui.bg_p1 },
-        separator = { fg = theme.ui.bg, bg = theme.ui.bg_m2 },
-        separator_visible = { fg = theme.ui.bg, bg = theme.ui.bg_m1 },
-        separator_selected = { fg = theme.ui.bg, bg = theme.ui.bg_p1 },
+        close_button = { fg = palette.ui.nontext, bg = palette.ui.bg_m2 },
+        close_button_visible = { fg = palette.ui.fg_dim, bg = palette.ui.bg_m1 },
+        close_button_selected = { fg = palette.diag.error, bg = palette.ui.bg_p1 },
+        separator = { fg = palette.ui.bg, bg = palette.ui.bg_m2 },
+        separator_visible = { fg = palette.ui.bg, bg = palette.ui.bg_m1 },
+        separator_selected = { fg = palette.ui.bg, bg = palette.ui.bg_p1 },
       })
     end,
   },
@@ -108,49 +108,53 @@ return {
     'b0o/incline.nvim',
     event = 'VeryLazy',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
-    opts = {
-      hide = {
-        cursorline = false,
-        focused_win = false,
-        only_win = false,
-      },
-      ignore = {
-        filetypes = {
-          'neo-tree',
-          'NvimTree',
-          'snacks_dashboard',
-          'snacks_layout_box',
-          'snacks_picker_input',
-          'snacks_picker_list',
+    opts = function()
+      local palette = require('config.theme').palette()
+      local devicons = require 'nvim-web-devicons'
+
+      return {
+        hide = {
+          cursorline = false,
+          focused_win = false,
+          only_win = false,
         },
-      },
-      window = {
-        margin = { horizontal = 0, vertical = 0 },
-        padding = 0,
-        placement = { horizontal = 'right', vertical = 'top' },
-      },
-      render = function(props)
-        local theme = require('kanagawa.colors').setup({ theme = 'dragon' }).theme
-        local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
-        filename = filename == '' and '[No Name]' or filename
-
-        local icon, icon_color = require('nvim-web-devicons').get_icon_color(filename)
-        local modified = vim.bo[props.buf].modified
-        local background = props.focused and theme.ui.bg_p1 or theme.ui.bg_m1
-        local foreground = props.focused and theme.ui.fg or theme.ui.fg_dim
-
-        return {
-          icon and { ' ' .. icon .. ' ', guifg = icon_color, guibg = background } or ' ',
-          { filename, guifg = foreground, guibg = background, gui = modified and 'bold,italic' or 'bold' },
-          {
-            modified and ' ● ' or ' 󰅖 ',
-            guifg = modified and theme.diag.warning or theme.ui.nontext,
-            guibg = background,
+        ignore = {
+          filetypes = {
+            'neo-tree',
+            'NvimTree',
+            'snacks_dashboard',
+            'snacks_layout_box',
+            'snacks_picker_input',
+            'snacks_picker_list',
           },
-          guibg = background,
-        }
-      end,
-    },
+        },
+        window = {
+          margin = { horizontal = 0, vertical = 0 },
+          padding = 0,
+          placement = { horizontal = 'right', vertical = 'top' },
+        },
+        render = function(props)
+          local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(props.buf), ':t')
+          filename = filename == '' and '[No Name]' or filename
+
+          local icon, icon_color = devicons.get_icon_color(filename)
+          local modified = vim.bo[props.buf].modified
+          local background = props.focused and palette.ui.bg_p1 or palette.ui.bg_m1
+          local foreground = props.focused and palette.ui.fg or palette.ui.fg_dim
+
+          return {
+            icon and { ' ' .. icon .. ' ', guifg = icon_color, guibg = background } or ' ',
+            { filename, guifg = foreground, guibg = background, gui = modified and 'bold,italic' or 'bold' },
+            {
+              modified and ' ● ' or ' 󰅖 ',
+              guifg = modified and palette.diag.warning or palette.ui.nontext,
+              guibg = background,
+            },
+            guibg = background,
+          }
+        end,
+      }
+    end,
   },
   {
     'folke/which-key.nvim',

@@ -8,6 +8,8 @@ local function check(condition, message)
 end
 
 check(vim.g.colors_name == 'kanagawa', 'expected the kanagawa colorscheme')
+local theme = require 'config.theme'
+check(theme.variant == 'dragon', 'expected config.theme to own the Dragon variant')
 check(vim.g.lazyvim_picker == 'telescope', 'expected telescope to be the configured picker')
 check(vim.g.lazyvim_cmp == 'blink.cmp', 'expected blink.cmp to be the configured completion engine')
 check(vim.g.lazyvim_ts_lsp == 'vtsls', 'expected vtsls to be the configured TypeScript LSP')
@@ -63,7 +65,8 @@ end
 for _, name in ipairs { 'lazydocker.nvim', 'toggleterm.nvim' } do
   check(plugins[name] == nil, ('expected old LazyDocker plugin %q to be absent'):format(name))
 end
-check(plugins.kanagawa.opts.theme == 'dragon', 'expected the Kanagawa dragon theme')
+check(plugins.kanagawa.opts.theme == theme.variant, 'expected Kanagawa to use the centralized theme variant')
+check(plugins.kanagawa.opts.overrides == theme.overrides, 'expected config.theme to own Kanagawa overrides')
 
 for _, name in ipairs { 'telescope.nvim', 'telescope-fzf-native.nvim', 'plenary.nvim' } do
   check(not plugins[name]._.loaded, ('expected %q to remain unloaded before interaction'):format(name))
@@ -251,10 +254,70 @@ for _, lhs in ipairs { '<leader>snl', '<leader>snh', '<leader>sna', '<leader>snd
   check(type(noice) == 'table' and type(noice.desc) == 'string' and noice.desc ~= '', ('expected Noice child mapping %q'):format(lhs))
 end
 
-for _, name in ipairs { 'FloatBorder', 'TelescopePromptNormal', 'SnacksPickerTree' } do
-  local ok, highlight = pcall(vim.api.nvim_get_hl, 0, { name = name })
-  check(ok and type(highlight) == 'table' and next(highlight) ~= nil, ('expected highlight group %q to resolve to a non-empty definition'):format(name))
+local theme_highlights = {
+  'NormalFloat',
+  'FloatBorder',
+  'FloatTitle',
+  'NormalDark',
+  'LazyNormal',
+  'MasonNormal',
+  'TelescopeTitle',
+  'TelescopePromptNormal',
+  'TelescopePromptBorder',
+  'TelescopeResultsNormal',
+  'TelescopeResultsBorder',
+  'TelescopePreviewNormal',
+  'TelescopePreviewBorder',
+  'SnacksPickerTree',
+  'SnacksNormal',
+  'SnacksNormalNC',
+  'SnacksWinBar',
+  'SnacksWinBarNC',
+  'LazyGitNormal',
+  'LazyGitBorder',
+  'LazyGitInactiveBorder',
+  'LazyGitActiveBorder',
+  'LazyGitSelectedLine',
+  'Pmenu',
+  'PmenuSel',
+  'PmenuSbar',
+  'PmenuThumb',
+  'DiagnosticVirtualTextHint',
+  'DiagnosticVirtualTextInfo',
+  'DiagnosticVirtualTextWarn',
+  'DiagnosticVirtualTextError',
+}
+
+local function resolved_theme_highlights()
+  local resolved = {}
+  for _, name in ipairs(theme_highlights) do
+    check(vim.fn.hlexists(name) == 1, ('expected highlight group %q to exist'):format(name))
+    local ok, highlight = pcall(vim.api.nvim_get_hl, 0, { name = name, link = false })
+    check(ok and type(highlight) == 'table', ('expected highlight group %q to resolve'):format(name))
+    resolved[name] = highlight
+  end
+  return resolved
 end
+
+check(
+  vim.wait(100, function()
+    return next(vim.api.nvim_get_hl(0, { name = 'TelescopePreviewNormal', link = false })) == nil
+  end),
+  'expected the theme to restore transparent Telescope highlights after lazy-load'
+)
+local initial_theme_highlights = resolved_theme_highlights()
+for reload = 1, 2 do
+  vim.cmd.colorscheme 'kanagawa-dragon'
+  check(vim.g.colors_name == 'kanagawa', ('expected Kanagawa after colorscheme reload %d'):format(reload))
+  local reloaded_theme_highlights = resolved_theme_highlights()
+  check(
+    vim.deep_equal(reloaded_theme_highlights, initial_theme_highlights),
+    ('expected theme highlights to remain stable after colorscheme reload %d'):format(reload)
+  )
+end
+
+local has_parallel_theme_autocmd = pcall(vim.api.nvim_get_autocmds, { group = 'personal-ui-colors' })
+check(not has_parallel_theme_autocmd, 'expected no parallel ColorScheme highlight autocmd')
 
 print 'Neovim smoke checks: PASS'
 vim.cmd 'qa'

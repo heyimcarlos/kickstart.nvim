@@ -94,11 +94,79 @@ for lhs in pairs(intentional_lsp_keys) do
   check(resolved_lsp_keys[lhs], ('missing intentional LSP mapping %q'):format(lhs))
 end
 
-require 'config.keymaps'
+require('lazyvim.config').load 'keymaps'
 for _, lhs in ipairs { '<leader>lg', 'sd', 'sn', 'sp' } do
   local mapping = vim.fn.maparg(lhs, 'n', false, true)
   check(type(mapping) == 'table' and type(mapping.desc) == 'string' and mapping.desc ~= '', ('expected %q to have a description'):format(lhs))
 end
+
+for lhs, desc in pairs { ['[d'] = 'Prev Diagnostic', [']d'] = 'Next Diagnostic' } do
+  local mapping = vim.fn.maparg(lhs, 'n', false, true)
+  check(type(mapping) == 'table' and mapping.desc == desc, ('expected inherited diagnostic mapping %q'):format(lhs))
+end
+for _, mode in ipairs { 'i', 'n', 's' } do
+  local escape = vim.fn.maparg('<Esc>', mode, false, true)
+  check(type(escape) == 'table' and escape.desc == 'Escape and Clear hlsearch', ('expected inherited Escape mapping in %s mode'):format(mode))
+end
+for _, mode in ipairs { 'n', 'x' } do
+  for lhs, desc in pairs { j = 'Down', k = 'Up' } do
+    local mapping = vim.fn.maparg(lhs, mode, false, true)
+    check(type(mapping) == 'table' and mapping.desc == desc, ('expected inherited %q mapping in %s mode'):format(lhs, mode))
+  end
+end
+
+local function feed(keys)
+  vim.api.nvim_feedkeys(vim.keycode(keys), 'x', false)
+end
+
+local diagnostic_namespace = vim.api.nvim_create_namespace 'smoke-diagnostics'
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' })
+vim.diagnostic.set(diagnostic_namespace, 0, {
+  { lnum = 1, col = 0, message = 'two' },
+  { lnum = 3, col = 0, message = 'four' },
+  { lnum = 5, col = 0, message = 'six' },
+  { lnum = 7, col = 0, message = 'eight' },
+})
+vim.api.nvim_win_set_cursor(0, { 1, 0 })
+feed '3]d'
+check(vim.api.nvim_win_get_cursor(0)[1] == 6, 'expected 3]d to jump forward three diagnostics')
+local diagnostic_float = false
+vim.wait(100, function()
+  for _, window in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_config(window).relative ~= '' then
+      diagnostic_float = true
+    end
+  end
+  return diagnostic_float
+end)
+check(diagnostic_float, 'expected diagnostic jump to open floating context')
+feed '2[d'
+check(vim.api.nvim_win_get_cursor(0)[1] == 2, 'expected 2[d to jump backward two diagnostics')
+vim.diagnostic.reset(diagnostic_namespace, 0)
+
+local snippet_stopped = false
+local snippet_stop = LazyVim.cmp.actions.snippet_stop
+LazyVim.cmp.actions.snippet_stop = function()
+  snippet_stopped = true
+end
+vim.fn.setreg('/', 'one')
+vim.o.hlsearch = true
+vim.fn.search 'one'
+feed '<Esc>'
+LazyVim.cmp.actions.snippet_stop = snippet_stop
+check(snippet_stopped, 'expected Escape to stop the active snippet session')
+check(vim.v.hlsearch == 0, 'expected Escape to clear search highlighting')
+
+vim.api.nvim_buf_set_lines(0, 0, -1, false, { string.rep('wrapped ', 40), 'next line' })
+vim.wo.wrap = true
+vim.api.nvim_win_set_width(0, 40)
+vim.api.nvim_win_set_cursor(0, { 1, 0 })
+feed 'j'
+local wrapped_cursor = vim.api.nvim_win_get_cursor(0)
+check(wrapped_cursor[1] == 1 and wrapped_cursor[2] > 0, 'expected j to move down within a wrapped line')
+feed 'k'
+check(vim.deep_equal(vim.api.nvim_win_get_cursor(0), { 1, 0 }), 'expected k to move up within a wrapped line')
+vim.bo.modified = false
 
 local search_spec = require 'plugins.search'
 local telescope_spec = search_spec[1]

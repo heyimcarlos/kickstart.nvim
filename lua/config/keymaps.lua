@@ -4,7 +4,6 @@ local delete_buffer = function()
   Snacks.bufdelete()
 end
 
-map('n', '<Esc>', '<cmd>nohlsearch<cr>')
 map('i', 'jj', '<Esc>')
 map('i', 'jk', '<Esc>')
 
@@ -45,16 +44,8 @@ map('n', '<leader>pv', vim.cmd.Ex, { desc = 'Open netrw' })
 map('n', '<leader>lg', function()
   Snacks.lazygit()
 end, { desc = '[L]azy[G]it' })
-map('n', '[d', function()
-  vim.diagnostic.jump { count = -1 }
-end, { desc = 'Previous Diagnostic' })
-map('n', ']d', function()
-  vim.diagnostic.jump { count = 1 }
-end, { desc = 'Next Diagnostic' })
 map('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show Diagnostic Error' })
 map('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Diagnostic Quickfix List' })
 
-map('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
-map('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 map('n', 'n', 'nzzzv')
 map('n', 'N', 'Nzzzv')

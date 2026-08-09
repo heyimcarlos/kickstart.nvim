@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$repo_dir"
+
+if ! command -v nvim >/dev/null 2>&1; then
+  echo 'scripts/check: nvim is required but was not found in PATH' >&2
+  exit 127
+fi
+
+if command -v stylua >/dev/null 2>&1; then
+  stylua_bin=stylua
+else
+  nvim_data_dir=$(nvim --headless --clean '+lua io.write(vim.fn.stdpath("data"))' +qa 2>&1)
+  stylua_bin="$nvim_data_dir/mason/bin/stylua"
+  if [ ! -x "$stylua_bin" ]; then
+    echo "scripts/check: stylua was not found in PATH or at the Mason path $stylua_bin" >&2
+    exit 127
+  fi
+fi
+
+"$stylua_bin" --check .
+nvim --headless -u init.lua "+lua dofile('tests/smoke.lua')"

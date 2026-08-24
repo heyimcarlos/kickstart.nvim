@@ -12,7 +12,8 @@ local theme = require 'config.theme'
 check(theme.variant == 'dragon', 'expected config.theme to own the Dragon variant')
 check(vim.g.lazyvim_picker == 'telescope', 'expected telescope to be the configured picker')
 check(vim.g.lazyvim_cmp == 'blink.cmp', 'expected blink.cmp to be the configured completion engine')
-check(vim.g.lazyvim_ts_lsp == 'vtsls', 'expected vtsls to be the configured TypeScript LSP')
+check(vim.g.lazyvim_python_lsp == 'ty', 'expected ty to be the configured Python LSP')
+check(vim.g.lazyvim_prettier_needs_config, 'expected Prettier to require a project config')
 
 local expected_extras = {
   ['lazyvim.plugins.extras.ai.copilot'] = true,
@@ -20,25 +21,36 @@ local expected_extras = {
   ['lazyvim.plugins.extras.editor.telescope'] = true,
   ['lazyvim.plugins.extras.formatting.prettier'] = true,
   ['lazyvim.plugins.extras.lang.astro'] = true,
+  ['lazyvim.plugins.extras.lang.docker'] = true,
   ['lazyvim.plugins.extras.lang.go'] = true,
   ['lazyvim.plugins.extras.lang.json'] = true,
   ['lazyvim.plugins.extras.lang.markdown'] = true,
   ['lazyvim.plugins.extras.lang.python'] = true,
   ['lazyvim.plugins.extras.lang.rust'] = true,
+  ['lazyvim.plugins.extras.lang.sql'] = true,
   ['lazyvim.plugins.extras.lang.tailwind'] = true,
+  ['lazyvim.plugins.extras.lang.terraform'] = true,
+  ['lazyvim.plugins.extras.lang.toml'] = true,
   ['lazyvim.plugins.extras.lang.typescript'] = true,
+  ['lazyvim.plugins.extras.lang.typescript.biome'] = true,
+  ['lazyvim.plugins.extras.lang.typescript.oxc'] = true,
+  ['lazyvim.plugins.extras.lang.typescript.tsgo'] = true,
   ['lazyvim.plugins.extras.linting.eslint'] = true,
 }
 
 local configured_extras = {}
 local configured_extra_list = require('lazyvim.config').json.data.extras
-check(#configured_extra_list == 13, 'expected exactly 13 Extras in lazyvim.json')
+check(#configured_extra_list == 20, 'expected exactly 20 Extras in lazyvim.json')
 for _, module in ipairs(configured_extra_list) do
   configured_extras[module] = true
 end
 for module in pairs(expected_extras) do
   check(configured_extras[module], ('expected Extra %q in lazyvim.json'):format(module))
 end
+
+local ts_default = require('lazyvim.config').get_default 'ts_lsp'
+check(ts_default.name == 'tsgo', 'expected the tsgo Extra to select the TypeScript LSP')
+check(ts_default.origin == 'extra', 'expected LazyExtras to own the TypeScript LSP selection')
 for module in pairs(configured_extras) do
   check(expected_extras[module], ('unexpected Extra %q in lazyvim.json'):format(module))
 end
@@ -57,6 +69,8 @@ end
 check(vim.o.relativenumber, 'expected relativenumber to be enabled')
 check(vim.o.numberwidth == 3, 'expected numberwidth to be 3')
 check(vim.o.statuscolumn == '%s%=%{v:relnum == 0 ? v:lnum : v:relnum} ', 'unexpected statuscolumn configuration')
+check(vim.o.winborder == 'rounded', 'expected rounded borders for ordinary floating windows')
+check(require('lazy.core.config').options.ui.border == 'rounded', 'expected rounded borders for lazy.nvim overlays')
 
 local plugins = require('lazy.core.config').plugins
 for _, name in ipairs { 'kanagawa', 'telescope.nvim', 'snacks.nvim', 'nvim-lspconfig' } do
@@ -73,6 +87,22 @@ for _, name in ipairs { 'telescope.nvim', 'telescope-fzf-native.nvim', 'plenary.
 end
 
 local lsp_opts = require('lazy.core.plugin').values(plugins['nvim-lspconfig'], 'opts', false)
+check(lsp_opts.servers.tsgo.mason == false, 'expected project-local Effect tsgo to remain outside Mason')
+check(type(lsp_opts.servers.tsgo.cmd) == 'function', 'expected Effect tsgo to resolve the patched project-local TypeScript binary')
+check(lsp_opts.servers.vtsls.enabled == false, 'expected vtsls to be disabled')
+check(lsp_opts.servers.ty.enabled, 'expected ty to be enabled')
+check(lsp_opts.servers.pyright.enabled == false, 'expected pyright to be disabled')
+check(lsp_opts.servers.ruff.enabled, 'expected Ruff to remain enabled beside ty')
+check(type(lsp_opts.setup.biome) == 'function', 'expected Oxlint to take priority over the Biome LSP')
+check(type(lsp_opts.setup.eslint) == 'function', 'expected Oxlint to take priority over the ESLint LSP')
+
+local conform_opts = require('lazy.core.plugin').values(plugins['conform.nvim'], 'opts', false)
+local typescript_formatters = conform_opts.formatters_by_ft.typescript
+check(typescript_formatters[1] == 'oxfmt', 'expected oxfmt to be the first TypeScript formatter')
+check(typescript_formatters[2] == 'biome-check', 'expected Biome to be the second TypeScript formatter')
+check(typescript_formatters[3] == 'prettier', 'expected Prettier to be the TypeScript fallback')
+check(typescript_formatters.stop_after_first, 'expected only one configured TypeScript formatter to run')
+check(conform_opts.formatters.oxfmt.require_cwd, 'expected oxfmt to require a project config')
 local lsp_keys = lsp_opts.servers['*'].keys
 local intentional_lsp_keys = {
   ['grD'] = { desc = 'LSP: Goto Declaration', has = 'declaration' },

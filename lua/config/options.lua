@@ -1,8 +1,7 @@
--- This remains on vtsls intentionally. It automatically selects the workspace
--- TypeScript SDK, which is required for project-local plugins such as
--- @effect/language-service. TypeScript 7 + @effect/tsgo needs a separate
--- command override; stock tsgo does not include Effect's language service.
-vim.g.lazyvim_ts_lsp = 'vtsls'
+-- TypeScript server ownership comes from the managed tsgo Extra. Effect
+-- projects provide its patched project-local node_modules/.bin/tsc binary.
+vim.g.lazyvim_python_lsp = 'ty'
+vim.g.lazyvim_prettier_needs_config = true
 vim.g.lazyvim_picker = 'telescope'
 vim.g.lazyvim_cmp = 'blink.cmp'
 vim.g.have_nerd_font = true
@@ -13,6 +12,7 @@ vim.opt.signcolumn = 'yes:1'
 vim.opt.foldcolumn = '0'
 vim.opt.statuscolumn = '%s%=%{v:relnum == 0 ? v:lnum : v:relnum} '
 vim.opt.showtabline = 2
+vim.opt.winborder = 'rounded'
 vim.opt.clipboard = 'unnamedplus'
 vim.opt.scrolloff = 10
 vim.opt.colorcolumn = '100'

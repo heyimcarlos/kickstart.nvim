@@ -14,38 +14,36 @@ init.lua
 
 ## TypeScript and Effect
 
-LazyVim installs and configures `vtsls`. It uses each project's workspace
-TypeScript SDK so TypeScript language-service plugins can load correctly.
+LazyVim configures `tsgo` as the sole TypeScript server. Effect projects supply
+the patched project-local TypeScript 7 `tsc` binary; Mason intentionally does
+not install or own a second TypeScript server.
 
-For an Effect project using TypeScript 5.x or 6.x:
+Set up each Effect project with TypeScript 7 and Effect's tsgo implementation:
 
 ```sh
-pnpm add -D typescript @effect/language-service
-pnpm exec effect-language-service setup
+npx @effect/tsgo setup
 ```
 
-The resulting `tsconfig.json` should include the plugin last:
+This patches the project's `node_modules/.bin/tsc`; the editor discovers that
+binary from the project root and starts its LSP mode. Keep the Effect source
+checkout in the project's `.reference/` directory as you already do.
 
-```json
-{
-  "$schema": "./node_modules/@effect/language-service/schema.json",
-  "compilerOptions": {
-    "plugins": [{ "name": "@effect/language-service" }]
-  }
-}
-```
+JavaScript-family formatting is project-driven. The first configured tool wins:
+`oxfmt`, then Biome, then Prettier. A tool is skipped unless its project config
+exists, so globally installed formatters do not fight each other.
 
-For TypeScript 7+, use the separate `@effect/tsgo` setup. It must replace the
-ordinary `tsgo` process as the sole TypeScript server; do not merely enable
-LazyVim's stock `tsgo` Extra alongside it.
+Oxlint is also the preferred JavaScript-family linter. When an Oxlint config is
+present, the Biome and ESLint language servers stay detached; without one,
+their own project configs can opt them in as fallbacks.
+
+Python uses `ty` for type checking and Ruff for linting and formatting.
 
 Inside Neovim:
 
 - `:Lazy` updates plugins and manages the lockfile.
 - `:LazyExtras` shows optional maintained feature bundles.
 - `:Mason` shows external language tools.
-- `:LspInfo` confirms that `vtsls` is attached to a TypeScript buffer.
-- `<leader>cV` selects the workspace TypeScript version.
+- `:LspInfo` confirms that exactly one `tsgo` is attached to a TypeScript buffer.
 - `<leader>ca` opens TypeScript and Effect refactors/code actions.
 
 Commit `lazy-lock.json` so another machine starts with the same known-good
